@@ -4,12 +4,14 @@ import sys
 import getopt
 
 class SlidoBot:
-    def __init__(self, hash=None, xpath=None, driver=None):
-        if hash == None or xpath == None or driver == None:
+    def __init__(self, hash=None, xpath=None, driver=None, scrolls=None, question=None):
+        if hash == None or xpath == None or driver == None or scrolls == None or question == None:
             raise("Invalid arg")
         self.hash = hash
         self.xpath = xpath
         self.driver = driver
+        self.scrolls = scrolls
+        self.question = question
         if "chrome" in self.driver:
             self.driver = webdriver.Chrome(self.driver)
         else:
@@ -18,25 +20,41 @@ class SlidoBot:
         self.driver.close()
 
     def vote(self):
-        self.driver.get("https://app.sli.do/event/"+self.hash+"/live/questions")
+        self.driver.get("https://app.sli.do/event/" + self.hash + "/live/questions")
+        time.sleep(5)
+        for i in range(0,int(self.scrolls)):
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(1)
+        click_elem = self.driver.find_element("xpath", "//body/div[@id='root']/div[3]/div[2]/div[1]/div[2]/div[5]/div[1]//div[contains(div[1]/div[2]/span,'" + self.question + "')]/div[1]//div[1]/div[3]/div[2]/button[1]")
+        self.driver.execute_script("arguments[0].scrollIntoView();", click_elem)
         time.sleep(1)
-        click_elem = self.driver.find_element_by_xpath(self.xpath)
         click_elem.click()
+        #self.driver.execute_script("arguments[0].click();", click_elem)
+        time.sleep(1)
 
 # hash # xpath # times
 def main():
-
+    HASH = ""
+    #XPATH = ""
+    DRIVER = ""
+    QUESTION = ""
+    SCROLLS = 0
+    VOTES = 1
     try:
         options, args = getopt.getopt(
-            sys.argv[1:], "h:x:d:v:",
+            sys.argv[1:], "h:x:d:v:q:",
             ["hash=", "xpath=", "driver=", "votes="])
         for name, value in options:
             if name in ('-h', '--hash'):
                 HASH = value
-            if name in ('-x', '--xpath'):
-                XPATH = value
+            #if name in ('-x', '--xpath'):
+            #    XPATH = value
             if name in ('-d', '--driver'):
                 DRIVER = value
+            if name in ('-q', '--question'):
+                QUESTION = value
+            if name in ('-s', '--scrolls'):
+                SCROLLS = value
             if name in ('-v', '--votes'):
                 VOTES = value
 
@@ -46,7 +64,7 @@ def main():
         sys.exit(1)
 
     for i in range(1, int(VOTES)+1):
-        BOT = SlidoBot(HASH, XPATH, DRIVER)
+        BOT = SlidoBot(HASH, "", DRIVER, SCROLLS, QUESTION)
         BOT.vote()
         BOT.closeBrowser()
         print("Votes: " + str(i))
