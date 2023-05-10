@@ -2,6 +2,7 @@ from selenium import webdriver
 import time
 import sys
 import getopt
+import _thread
 
 class SlidoBot:
     def __init__(self, hash=None, xpath=None, driver=None, scrolls=None, question=None):
@@ -28,8 +29,8 @@ class SlidoBot:
         click_elem = self.driver.find_element("xpath", "//body/div[@id='root']/div[3]/div[2]/div[1]/div[2]/div[5]/div[1]//div[contains(div[1]/div[2]/span,'" + self.question + "')]/div[1]//div[1]/div[3]/div[2]/button[1]")
         self.driver.execute_script("arguments[0].scrollIntoView();", click_elem)
         time.sleep(1)
-        click_elem.click()
-        #self.driver.execute_script("arguments[0].click();", click_elem)
+        #click_elem.click()
+        self.driver.execute_script("arguments[0].click();", click_elem)
         time.sleep(1)
 
 # hash # xpath # times
@@ -42,7 +43,7 @@ def main():
     VOTES = 1
     try:
         options, args = getopt.getopt(
-            sys.argv[1:], "h:x:d:v:q:",
+            sys.argv[1:], "h:x:d:v:q:s:",
             ["hash=", "xpath=", "driver=", "votes="])
         for name, value in options:
             if name in ('-h', '--hash'):
@@ -65,6 +66,7 @@ def main():
 
     for i in range(1, int(VOTES)+1):
         BOT = SlidoBot(HASH, "", DRIVER, SCROLLS, QUESTION)
+        #_thread.start_new_thread( BOT.vote, () )
         BOT.vote()
         BOT.closeBrowser()
         print("Votes: " + str(i))
